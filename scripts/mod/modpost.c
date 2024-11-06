@@ -1553,8 +1553,19 @@ static void mod_set_crcs(struct module *mod)
 	free(buf);
 }
 
+static const char *mod_basename(const char *modname)
+{
+	const char *basename = strrchr(modname, '/');
+	if (basename)
+		basename++;
+	else
+		basename = modname;
+	return basename;
+}
+
 static void read_symbols(const char *modname)
 {
+	char module_namespace[MODULE_NAME_LEN + 8];
 	const char *symname;
 	char *version;
 	char *license;
@@ -1586,12 +1597,16 @@ static void read_symbols(const char *modname)
 			license = get_next_modinfo(&info, "license", license);
 		}
 
-		namespace = get_modinfo(&info, "import_ns");
-		while (namespace) {
+		for (namespace = get_modinfo(&info, "import_ns"); namespace;
+		     namespace = get_next_modinfo(&info, "import_ns", namespace)) {
+			if (strstarts(namespace, "MODULE_"))
+				error("importing implicit module namespace: %s\n", namespace);
+
 			add_namespace(&mod->imported_namespaces, namespace);
-			namespace = get_next_modinfo(&info, "import_ns",
-						     namespace);
 		}
+		snprintf(module_namespace, sizeof(module_namespace), "MODULE_%s",
+			 mod_basename(mod->name));
+		add_namespace(&mod->imported_namespaces, module_namespace);
 
 		if (extra_warn && !get_modinfo(&info, "description"))
 			warn("missing MODULE_DESCRIPTION() in %s\n", modname);
@@ -1700,11 +1715,7 @@ static void check_exports(struct module *mod)
 		s->crc_valid = exp->crc_valid;
 		s->crc = exp->crc;
 
-		basename = strrchr(mod->name, '/');
-		if (basename)
-			basename++;
-		else
-			basename = mod->name;
+		basename = mod_basename(mod->name);
 
 		if (!contains_namespace(&mod->imported_namespaces, exp->namespace)) {
 			modpost_log(!allow_missing_ns_imports,
