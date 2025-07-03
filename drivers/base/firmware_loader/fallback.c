@@ -35,8 +35,13 @@ void fw_fallback_set_default_timeout(void)
 
 static long firmware_loading_timeout(void)
 {
-	return __firmware_loading_timeout() > 0 ?
-		__firmware_loading_timeout() * HZ : MAX_JIFFY_OFFSET;
+	long timeout;
+
+	if (__firmware_loading_timeout() <= 0)
+		return MAX_JIFFY_OFFSET;
+	if (check_mul_overflow(__firmware_loading_timeout(), HZ, &timeout))
+		return LONG_MAX;
+	return timeout;
 }
 
 static inline int fw_sysfs_wait_timeout(struct fw_priv *fw_priv,  long timeout)
