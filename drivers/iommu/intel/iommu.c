@@ -2363,7 +2363,7 @@ static void iommu_flush_all(void)
 	}
 }
 
-static int iommu_suspend(void)
+static int iommu_suspend(struct syscore_ops *ops)
 {
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu = NULL;
@@ -2390,7 +2390,7 @@ static int iommu_suspend(void)
 	return 0;
 }
 
-static void iommu_resume(void)
+static void iommu_resume(struct syscore_ops *ops)
 {
 	struct dmar_drhd_unit *drhd;
 	struct intel_iommu *iommu = NULL;
