@@ -726,7 +726,7 @@ static void __exception_irq_entry mpic_handle_irq(struct pt_regs *regs)
 	} while (1);
 }
 
-static int mpic_suspend(void)
+static int mpic_suspend(struct syscore_ops *ops)
 {
 	struct mpic *mpic = mpic_data;
 
@@ -735,7 +735,7 @@ static int mpic_suspend(void)
 	return 0;
 }
 
-static void mpic_resume(void)
+static void mpic_resume(struct syscore_ops *ops)
 {
 	struct mpic *mpic = mpic_data;
 	bool src0, src1;

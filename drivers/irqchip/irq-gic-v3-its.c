@@ -4992,7 +4992,7 @@ static void its_enable_quirks(struct its_node *its)
 				     its_quirks, its);
 }
 
-static int its_save_disable(void)
+static int its_save_disable(struct syscore_ops *ops)
 {
 	struct its_node *its;
 	int err = 0;
@@ -5028,7 +5028,7 @@ err:
 	return err;
 }
 
-static void its_restore_enable(void)
+static void its_restore_enable(struct syscore_ops *ops)
 {
 	struct its_node *its;
 	int ret;
